@@ -270,6 +270,9 @@ int main(int argc, char **argv)
     p.setPlayHead(nullptr);
     if (argc > 1)
     {
+        for (auto* parameter : restored.getParameters())
+            parameter->setValueNotifyingHost(parameter->getDefaultValue());
+        for (int i = 0; i < 5; ++i) { restored.setLocked(i, false); restored.setSolo(i, false); }
         restored.loadDemo();
         wait(restored);
         std::unique_ptr<juce::AudioProcessorEditor> editor(restored.createEditor());
