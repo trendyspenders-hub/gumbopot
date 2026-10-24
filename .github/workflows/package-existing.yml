@@ -1,0 +1,29 @@
+name: Package verified Mac plugins
+on:
+  workflow_dispatch:
+  push:
+    paths: ['Package-Mac-Existing.command', '.github/workflows/package-existing.yml']
+permissions:
+  contents: read
+  actions: read
+jobs:
+  package:
+    runs-on: macos-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Retrieve the compiled native instrument and its passed test results
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          gh run watch 40141879401 --exit-status || true
+          gh run download 40141879401 --name GumboPot-Mac-VST3-AU --dir recovered
+      - name: Register AU, validate and package universal bundles
+        run: bash Package-Mac-Existing.command recovered
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: GumboPot-Mac-Installer
+          path: Output/
+          if-no-files-found: error
