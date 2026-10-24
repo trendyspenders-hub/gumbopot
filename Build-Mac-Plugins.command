@@ -20,7 +20,7 @@ for gumbo_bundle in "$gumbo_vst" "$gumbo_au"; do
   codesign --force --deep --sign - "$gumbo_bundle"
   codesign --verify --deep --strict "$gumbo_bundle"
   gumbo_binary="$gumbo_bundle/Contents/MacOS/Gumbo Pot"
-  lipo -verify_arch arm64 x86_64 "$gumbo_binary"
+  lipo "$gumbo_binary" -verify_arch arm64 x86_64
 done
 gumbo_stage='Output/GumboPot-Mac'
 mkdir -p "$gumbo_stage/VST3" "$gumbo_stage/Components"
