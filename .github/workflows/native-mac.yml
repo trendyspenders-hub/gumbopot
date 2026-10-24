@@ -1,0 +1,21 @@
+name: Gumbo Pot Mac VST3 and AU
+on:
+  workflow_dispatch:
+  push:
+    paths: ['Source/**', 'Assets/**', 'tests/**', 'CMakeLists.txt', 'scripts/**', 'Build-Mac-Plugins.command', '.github/workflows/native-mac.yml']
+permissions:
+  contents: read
+jobs:
+  mac-plugins:
+    runs-on: macos-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build, run native checks, validate AU and package universal plugins
+        run: bash Build-Mac-Plugins.command
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: GumboPot-Mac-VST3-AU
+          path: Output/
+          if-no-files-found: error

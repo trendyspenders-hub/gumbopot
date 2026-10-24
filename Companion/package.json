@@ -1,0 +1,22 @@
+{
+  "name": "gumbo-pot",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "description": "Gumbo Pot local browser kitchen and authenticated Splice companion",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "node browser/server.mjs",
+    "start": "node browser/server.mjs",
+    "build": "node browser/build.mjs",
+    "preview": "node browser/server.mjs --preview",
+    "test": "node --test browser/test/*.test.mjs",
+    "splice:probe": "node browser/probe.mjs",
+    "test:browser": "node browser/smoke-browser.mjs"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/client": "2.4.0"
+  }
+}

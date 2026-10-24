@@ -1,0 +1,8 @@
+JUCE/
+build*/
+node_modules/
+__pycache__/
+*.pyc
+Companion/dist/
+Output/
+.DS_Store

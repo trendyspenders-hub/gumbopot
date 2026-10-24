@@ -1,0 +1,72 @@
+  PASS  taste events recorded
+  PASS  palate vector computed
+  PASS  palate prefers pins over trash
+  PASS  classifier: drums
+  PASS  classifier: bass
+  PASS  classifier: chordal
+  PASS  classifier: melodic
+  PASS  classifier: texture
+  PASS  ranker learns positive class
+  PASS  ranker save/load roundtrip
+  PASS  stack brain runs ()
+  PASS  stack.json v2
+  PASS  no duplicate roles
+  PASS  why-terms present
+  PASS  coherence prefers balanced mix (mud=0.76 clean=0.92)
+  PASS  strain suggestions emitted
+  PASS  lufs approx sane
+  PASS  daily cook deterministic (gumbo://v1.cajun.11015.68.5)
+  PASS  daily cook seed math
+  PASS  bad cuisine rejected
+  PASS  telemetry hashes paths
+  PASS  upload ships disabled
+  PASS  FTS search works (1 hits)
+  PASS  dedup clusters found (5 role clusters)
+  PASS  watch folder ingests new file
+/tmp/tmp9442ty92/g.touchosc: 21 controls
+/tmp/tmp9442ty92/man.json: 20 slots
+  PASS  touchosc generated
+  PASS  manifest 20 slots
+  PASS  quiz: needed on fresh db
+  PASS  quiz: not needed once events exist
+  PASS  quiz serves full pool (15/15)
+  PASS  quiz covers all roles ['bass', 'chordal', 'drums', 'melodic', 'texture']
+  PASS  quiz: satisfied after answers
+  PASS  quiz never repeats
+  PASS  quiz: skip suppresses without events
+  PASS  decay: 100-day-old event weighs ~0.099
+  PASS  get_events since-filter works
+  PASS  ranker cold start refuses to train
+  PASS  shadow gate: under 200 disagreements
+  PASS  shadow gate: promotes at 80% win rate
+  PASS  flip cuisine decodes
+  PASS  non-int seed rejected
+  PASS  stack brain seed-sound mode runs
+  PASS  seed-sound anchors the cook
+  PASS  vibe mode degrades gracefully without CLAP
+  PASS  indexer analyze degrades to None without librosa
+  PASS  quiz serves demo pantry first
+  PASS  telemetry: >90-day events rolled away
+  PASS  import_stacks -> FTS roundtrip
+  PASS  hoard stats computed (16 samples)
+  PASS  compost moves duplicates, keeps winner
+  PASS  watch folder: second scan ingests nothing
+  PASS  touchosc: 21 well-formed controls
+  PASS  loop: sine scores periodic (1.0)
+  PASS  loop: length honored
+  PASS  loop: noise scores low (0.0)
+  PASS  loop: silence is 0
+  PASS  JS decoder: matches python decode
+  PASS  JS decoder: rejects unknown cuisine
+  PASS  map projects all embedded samples (17)
+  PASS  map coords normalized to [-1,1]
+  PASS  map deterministic
+  PASS  clusters found (6)
+  PASS  cluster labeled by dominant role ('drums - G minor')
+  PASS  neighbors: same role first (replace-with-similar)
+  PASS  region lasso -> role-complete stack (['bass', 'chordal', 'drums', 'melodic', 'texture'])
+  PASS  daily render: correct duration/format
+  PASS  daily render: mixes all layers
+  PASS  daily render: layer order stable
+
+ALL PASS
