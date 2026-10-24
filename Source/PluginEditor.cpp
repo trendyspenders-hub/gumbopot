@@ -169,6 +169,47 @@ void GumboPotAudioProcessorEditor::addSlider(juce::Slider &s, const juce::String
     s.setNumDecimalPlacesToDisplay(2);
     addAndMakeVisible(s);
     attachments.push_back(std::make_unique<Attachment>(processor.apvts, id, s));
+    // Attachments supply parameter formatting first; override only the editor display/entry units.
+    // Automation IDs, ranges, defaults and state values remain unchanged.
+    const bool isGain = id == "master" || id.endsWith("gain");
+    const bool isPan = id.endsWith("pan"), isFilter = id.endsWith("filter");
+    s.textFromValueFunction = [isGain, isPan, isFilter](double value)
+    {
+        if (isGain)
+            return value <= 0.0001 ? juce::String("-inf dB")
+                                  : juce::String(juce::Decibels::gainToDecibels(value), 1) + " dB";
+        if (isPan)
+            return std::abs(value) < 0.005 ? juce::String("C")
+                                         : juce::String((int)std::round(std::abs(value) * 100)) + (value < 0 ? "% L" : "% R");
+        if (isFilter)
+        {
+            const double hz = 180.0 * std::pow(100.0, value);
+            return hz >= 1000 ? juce::String(hz / 1000.0, 1) + " kHz" : juce::String((int)std::round(hz)) + " Hz";
+        }
+        return juce::String((int)std::round(value * 100)) + "%";
+    };
+    s.valueFromTextFunction = [isGain, isPan, isFilter](const juce::String &input)
+    {
+        if (isGain)
+            return input.containsIgnoreCase("inf") ? 0.0 : juce::Decibels::decibelsToGain(input.getDoubleValue());
+        if (isPan)
+        {
+            if (input.trim().equalsIgnoreCase("C")) return 0.0;
+            const double magnitude = input.getDoubleValue() / 100.0;
+            return input.containsIgnoreCase("L") ? -std::abs(magnitude)
+                 : input.containsIgnoreCase("R") ? std::abs(magnitude) : magnitude;
+        }
+        if (isFilter)
+        {
+            const double hz = input.getDoubleValue() * (input.containsIgnoreCase("k") ? 1000.0 : 1.0);
+            return std::log(juce::jlimit(180.0, 18000.0, hz) / 180.0) / std::log(100.0);
+        }
+        return input.getDoubleValue() / 100.0;
+    };
+    s.setColour(juce::Slider::textBoxOutlineColourId, juce::Colour(0xff3b4942));
+    s.setColour(juce::Slider::textBoxBackgroundColourId, juce::Colour(0xff10191a));
+    s.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 72, 18);
+    s.updateText();
 }
 void GumboPotAudioProcessorEditor::text(juce::Graphics &g, const juce::String &value, juce::Rectangle<float> bounds,
                                         float size, juce::Colour colour, int justification, bool bold)
@@ -211,7 +252,7 @@ void GumboPotAudioProcessorEditor::paint(juce::Graphics &raw)
     drawPanel(g, {1204, 678, 216, 112});
     text(g, "THE PANTRY", {38, 129, 180, 24}, 15, paper, juce::Justification::centredLeft, true);
     text(g, "YOUR SOUNDS. YOUR RECIPE.", {38, 154, 180, 18}, 9, gold);
-    text(g, juce::String(ui.pantryNames.size()) + " LOCAL SAMPLES", {38, 259, 180, 20}, 10, muted);
+    text(g, ui.pantryNames.isEmpty() && ui.layers[0].active ? "5 HOUSE INGREDIENTS" : juce::String(ui.pantryNames.size()) + " LOCAL SAMPLES", {38, 259, 180, 20}, 10, muted);
     text(g, "Double-click a pantry sound to\nfill the first unlocked bowl.", {38, 641, 178, 38}, 11, muted);
     text(g, "WAV / AIFF / FLAC\nBPM from filename; default 120.", {38, 695, 180, 38}, 10, muted);
     text(g, "WHAT'S COOKIN'?", {270, 119, 650, 44}, 30, paper, juce::Justification::centredLeft, true);
@@ -438,10 +479,14 @@ bool GumboPotAudioProcessorEditor::keyPressed(const juce::KeyPress &key)
     }
     return false;
 }
-int GumboPotAudioProcessorEditor::getNumRows() { return ui.pantryNames.size(); }
+int GumboPotAudioProcessorEditor::getNumRows()
+{
+    return ui.pantryNames.isEmpty() && ui.layers[0].active ? 5 : ui.pantryNames.size();
+}
 void GumboPotAudioProcessorEditor::paintListBoxItem(int row, juce::Graphics &g, int width, int height, bool selected)
 {
-    if (row >= ui.pantryNames.size())
+    const bool house = ui.pantryNames.isEmpty() && ui.layers[0].active;
+    if (row < 0 || row >= (house ? 5 : ui.pantryNames.size()))
         return;
     if (selected)
     {
@@ -452,7 +497,13 @@ void GumboPotAudioProcessorEditor::paintListBoxItem(int row, juce::Graphics &g, 
     g.drawHorizontalLine(height - 1, 8, (float)width - 8);
     g.setColour(paper);
     g.setFont(juce::FontOptions(11.0f * scale));
-    g.drawFittedText(ui.pantryNames[row], 10, 5, width - 20, height - 10, juce::Justification::centredLeft, 2);
+    const auto name = house ? ui.layers[(size_t)row].name : ui.pantryNames[row];
+    g.drawFittedText(name, 10, 5, width - 20, house ? 19 : height - 10, juce::Justification::centredLeft, 2);
+    if (house)
+    {
+        g.setColour(muted); g.setFont(juce::FontOptions(9.0f * scale));
+        g.drawText("HOUSE DEMO / 120 BPM", 10, 25, width - 20, 12, juce::Justification::centredLeft);
+    }
 }
 void GumboPotAudioProcessorEditor::listBoxItemDoubleClicked(int row, const juce::MouseEvent &)
 {
