@@ -22,6 +22,14 @@ bash "$gumbo_stage/Install-Mac.command"
 killall -u "$(id -un)" AudioComponentRegistrar 2>/dev/null || true
 sleep 2
 auval -a 2>&1 | tee Output/AU-Components.txt
+if ! grep -Eq 'aumu[[:space:]]+Gpot[[:space:]]+Gmbo' Output/AU-Components.txt && [[ "${GITHUB_ACTIONS:-false}" == true ]]; then
+  # Headless CI registration can omit per-user components. Use the standard system scope on this disposable runner.
+  sudo mkdir -p /Library/Audio/Plug-Ins/Components
+  sudo ditto "$gumbo_stage/Components/Gumbo Pot.component" '/Library/Audio/Plug-Ins/Components/Gumbo Pot.component'
+  sudo killall AudioComponentRegistrar 2>/dev/null || true
+  sleep 2
+  auval -a 2>&1 | tee Output/AU-Components.txt
+fi
 auval -v aumu Gpot Gmbo 2>&1 | tee Output/AU-Validation.txt
 cp Output/AU-Validation.txt "$gumbo_stage/AU-Validation.txt"
 hdiutil create -volname 'Gumbo Pot' -srcfolder "$gumbo_stage" -ov -format UDZO Output/GumboPot-Mac-universal.dmg
