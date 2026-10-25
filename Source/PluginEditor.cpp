@@ -14,6 +14,8 @@ KitchenLookAndFeel::KitchenLookAndFeel()
     setColour(juce::Slider::textBoxTextColourId, paper);
     setColour(juce::Slider::textBoxBackgroundColourId, juce::Colours::transparentBlack);
     setColour(juce::Slider::textBoxOutlineColourId, juce::Colours::transparentBlack);
+    setColour(juce::TextButton::buttonColourId, juce::Colour(0xff30392f));
+    setColour(juce::TextButton::buttonOnColourId, gold);
     setColour(juce::TextButton::textColourOffId, paper);
     setColour(juce::TextButton::textColourOnId, juce::Colour(0xff121715));
     setColour(juce::ComboBox::backgroundColourId, juce::Colour(0xff151d1d));
@@ -160,6 +162,7 @@ GumboPotAudioProcessorEditor::GumboPotAudioProcessorEditor(GumboPotAudioProcesso
                             "authentication remains in the companion.");
     spliceButton.onClick = [] { juce::URL("http://127.0.0.1:5173").launchInDefaultBrowser(); };
     addAndMakeVisible(motionButton);
+    motionButton.setColour(juce::TextButton::buttonOnColourId, green);
     motionButton.setClickingTogglesState(true);
     motionButton.setToggleState(true, juce::dontSendNotification);
     motionButton.setTooltip("Pause decorative motion. Audio and controls remain active.");
