@@ -1,20 +1,19 @@
 # Native verification
 
-## Completed locally
+## Completed Mac build
 
-- JUCE 8.0.4 native source compiles and links as a Linux VST3 bundle. JUCE's VST3 manifest helper loads the module and creates moduleinfo.json.
-- The headless native audio suite has exercised sample playback, tempo ratio, pan, stereo preservation, short-loop wrapping, low-rate filter stability, unchanged parameter IDs/order, worker demo loading, transport stop, audition, callback C++ allocations, locks, WAV/stem output, demo/session recall, relative stack paths, shorter-stack clearing, missing-file failure, live bank replacement and host tempo/transport.
-- One test's wait for message-thread gain application was lengthened to cover the 20 Hz service timer; this avoids falsely checking before the queued gain has been applied.
-- The native editor screenshot is being validated on an actual graphics display. A no-display run cannot prove a GUI works.
+Native source commit ea238ea84f4ed0aeae2e66e6fb5786b3126ca582 compiled universal arm64/x86_64 VST3 and AU using JUCE 8.0.4. All 23 native checks passed, including actual editor PNG rendering, playback, tempo, pan, stereo preservation, wrapping, parameter compatibility, demo/session recall, imports, locks, export, host transport and callback C++ new/delete instrumentation.
 
-## Mac build workflow
+Packaging and Apple AU validation succeeded in https://github.com/trendyspenders-hub/gumbopot/actions/runs/40142540539. Bundle signatures and both CPU slices were verified. Apple's auval reported AU VALIDATION SUCCEEDED, including rendering, MIDI and parameter checks. The runner executed on Apple Silicon; the Intel slice was verified but was not separately executed on Intel hardware.
 
-The workflow compiles **universal arm64/x86_64 VST3 and AU**, executes the same native checks and renders the native editor, verifies the bundle signatures/CPU slices, installs for the runner user, runs Apple's `auval`, then packages DMG and ZIP. Consult the workflow result and its logs for the current Mac build status. No Mac result is claimed solely from local Linux results.
+The downloadable DMG and ZIP contain both plugin formats, a per-user installer, the actual native interface PNG and validation logs. Bundles are ad-hoc signed, without Developer ID signing or notarization.
 
-The callback ownership protocol uses immutable sample banks and sequentially consistent publication/hazard pointers. Loading/decoding/reclamation is on a worker; processBlock does not lock, decode files, post message-thread callbacks, or construct parameter-name strings. Callback allocation instrumentation counts C++ new/delete on the calling thread, including during sample replacement and SysEx input; it is not a general malloc detector or a formal concurrency proof.
+The disposable CI runner required system-scope AU registration for discovery. This recovery is restricted to GitHub Actions; the user installer installs per-user.
 
-## Release checks still required
+## Scope and remaining validation
 
-Test the finished Mac bundles in your DAWs: Logic/AU, another VST3 host, recall with missing files, repeated editor open/close, live sample swaps, sample-rate/block-size changes, loops at multiple tempos, MIDI/transport start-stop, automation, export re-import, and both CPU architectures. No physical listening test or broad DAW certification is claimed.
+No physical listening test or broad DAW certification is claimed. Test the finished plugins in your DAWs, including Logic/AU and a VST3 host, automation, repeated editor open/close, missing sample recall, live sample changes and export re-import.
 
-The optional Companion/ browser component has separate OAuth/approval/audio tests. It does not make the native instrument itself a Splice catalog client.
+The callback ownership protocol uses immutable banks and sequentially consistent publication/hazard pointers. Loading, decoding and reclamation run on a worker. Instrumentation counts calling-thread C++ new/delete; it is not a general malloc detector or formal concurrency proof.
+
+The optional browser Splice companion runs separately. It does not make the native instrument a Splice catalog client; authenticated Splice operations still require account testing.
