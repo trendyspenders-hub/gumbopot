@@ -367,7 +367,7 @@ void GumboPotAudioProcessorEditor::paint(juce::Graphics &raw)
         for(int n=0;n<9;++n)
         {
             g.setColour(ink.withAlpha(.12f+activity*.65f));
-            g.fillRect(cx-36+n*9,428,5,3+(n%2)*2);
+            g.fillRect(cx-36+n*9,428.0f,5.0f,3.0f+(n%2)*2);
         }
         text(g,info.active?info.name:"Empty",{x+12,443,148,27},12,paper,juce::Justification::centred,true);
         text(g,info.active?juce::String(info.bpm,0)+" BPM / "+juce::String(info.duration,1)+" s":"Drop audio",{x+9,472,154,18},10,muted,juce::Justification::centred);
