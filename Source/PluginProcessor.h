@@ -19,7 +19,7 @@ class GumboPotAudioProcessor : public juce::AudioProcessor, private juce::Thread
     struct UiState
     {
         uint64_t revision = 0;
-        juce::String title{"Your next recipe starts here"}, message{"Import audio or load the original demo pantry."};
+        juce::String title{"Untitled"}, message{"Import audio or choose Demo."};
         std::array<LayerInfo, 5> layers;
         juce::StringArray pantryNames, pantryPaths;
     };

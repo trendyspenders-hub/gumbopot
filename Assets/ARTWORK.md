@@ -1,5 +1,5 @@
-# Kitchen backdrop
+# Native interface artwork
 
-The embedded JPEG is a compressed encoding of an original backdrop generated with the built-in image-generation tool for this project. Labels, controls, waveforms and meters are drawn by JUCE rather than baked into the backdrop.
+The native editor uses original code-drawn enamel grain, cast-iron pots, handles, soup waveforms, steam, burner indicators, rotary controls, jack sockets and a pot seal. No photographic backdrop or generated raster image is loaded or linked into the native plugins. The former backdrop file is retained only as historical source material and is not used in the build.
 
-Prompt: Premium cinematic Louisiana backyard at dusk; a huge empty black cast-iron gumbo pot viewed straight on slightly from above, central lower composition; worn wooden bench; paprika, garlic and bay leaves near corners; gentle steam and low embers; dark bayou sky and warm amber edge lighting; broad uncluttered black pot belly for five mixer strips; no people, text, logos, controls, stickers or interface panels.
+Motion runs at 30 Hz on the editor/message thread. Playback state and output energy drive the pots; stirring adds a brief swirl. Motion can be paused independently of audio using the header switch. These decorations are not sample-accurate transport indicators. They require no audio callback work.

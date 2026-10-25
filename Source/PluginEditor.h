@@ -39,18 +39,23 @@ class GumboPotAudioProcessorEditor : public juce::AudioProcessorEditor,
               int = juce::Justification::centredLeft, bool = false);
     GumboPotAudioProcessor &processor;
     KitchenLookAndFeel theme;
-    juce::Image backdrop;
+    juce::Image surface;
+    bool motionEnabled = true;
+    float animationSeconds = 0, beatPhase = 0, activity = 0, stirEnergy = 0;
+    double lastFrameMs = 0;
+    juce::String statusText() const;
     GumboPotAudioProcessor::UiState ui;
     std::array<juce::Slider, 5> gains, pans, filters;
     std::array<juce::TextButton, 5> locks, solos, loads;
     juce::Slider master, gumbo, weirdness, seed;
     using Attachment = juce::AudioProcessorValueTreeState::SliderAttachment;
     std::vector<std::unique_ptr<Attachment>> attachments;
-    juce::TextButton importButton{"IMPORT AUDIO"}, demoButton{"LOAD HOUSE DEMO"}, recipeButton{"OPEN RECIPE"},
-        saveButton{"SAVE RECIPE"};
-    juce::TextButton stirButton{"STIR THE POT"}, playButton{"AUDITION"}, mixButton{"EXPORT MIX  /  WAV"},
-        stemButton{"EXPORT STEMS  /  ZIP"};
-    juce::TextButton spliceButton{"OPEN SPLICE COMPANION"};
+    juce::TextButton importButton{"IMPORT"}, demoButton{"DEMO"}, recipeButton{"OPEN"},
+        saveButton{"SAVE"};
+    juce::TextButton stirButton{"STIR"}, playButton{"AUDITION"}, mixButton{"MIX / WAV"},
+        stemButton{"STEMS / ZIP"};
+    juce::TextButton spliceButton{"OPEN COMPANION"};
+    juce::TextButton motionButton{"MOTION ON"};
     juce::ComboBox bars;
     juce::ListBox pantryList{"Local pantry", this};
     juce::TooltipWindow tooltips{this, 500};

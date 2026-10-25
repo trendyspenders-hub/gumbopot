@@ -420,7 +420,7 @@ void GumboPotAudioProcessor::perform(const Job &job)
 {
     auto bank = std::make_unique<Bank>();
     bank->id = job.id;
-    bank->title = "Local pantry recipe";
+    bank->title = "Imported mix";
     const auto *previous = published.load();
     std::array<juce::String, 5> paths;
     std::array<double, 5> bpms{120, 120, 120, 120, 120};
@@ -437,7 +437,7 @@ void GumboPotAudioProcessor::perform(const Job &job)
         {
             bank->samples[(size_t)i] = makeDemoSample(i);
         }
-        bank->title = "The original house recipe";
+        bank->title = "House mix";
         publish(std::move(bank));
         return;
     }
@@ -473,7 +473,7 @@ void GumboPotAudioProcessor::perform(const Job &job)
             paths[(size_t)i] = job.paths[i];
             bpms[(size_t)i] = job.bpms[(size_t)i];
         }
-        bank->title = "Restored recipe";
+        bank->title = "Recalled mix";
     }
     else if (job.type == Job::files)
     {
@@ -514,7 +514,7 @@ void GumboPotAudioProcessor::perform(const Job &job)
                     bpms[(size_t)i] = bpmFromName(juce::File(paths[(size_t)i]).getFileNameWithoutExtension());
                 }
             }
-        bank->title = previous ? previous->title : "Local pantry recipe";
+        bank->title = previous ? previous->title : "Imported mix";
     }
     // Demo slots are regenerated when another slot changes, without disk access.
     for (int i = 0; i < 5; ++i)
@@ -618,7 +618,7 @@ void GumboPotAudioProcessor::renderFile(const Job &job)
             throw std::runtime_error("Cannot write stem archive.");
     }
     const juce::ScopedLock lock(uiMutex);
-    ui.message = "Served: " + job.file.getFileName() + " (" + juce::String(job.bars) + " bars at " +
+    ui.message = "Exported: " + job.file.getFileName() + " (" + juce::String(job.bars) + " bars at " +
                  juce::String(bpm, 1) + " BPM).";
 }
 void GumboPotAudioProcessor::getStateInformation(juce::MemoryBlock &dest)

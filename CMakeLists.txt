@@ -23,7 +23,6 @@ endif()
 if(GUMBO_BUILD_STANDALONE)
     list(APPEND GUMBO_FORMATS Standalone)
 endif()
-juce_add_binary_data(GumboAssets SOURCES Assets/kitchen-backdrop.jpg)
 juce_add_plugin(GumboPot
     COMPANY_NAME "Gumbo Pot Audio"
     BUNDLE_ID "audio.gumbopot.instrument"
@@ -41,13 +40,13 @@ juce_add_plugin(GumboPot
     PRODUCT_NAME "Gumbo Pot")
 target_sources(GumboPot PRIVATE Source/PluginProcessor.cpp Source/PluginEditor.cpp Source/LayerPlayer.cpp)
 target_compile_definitions(GumboPot PUBLIC JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0 JUCE_VST3_CAN_REPLACE_VST2=0 JUCE_DISPLAY_SPLASH_SCREEN=0)
-target_link_libraries(GumboPot PRIVATE GumboAssets juce::juce_audio_utils juce::juce_dsp PUBLIC juce::juce_recommended_config_flags juce::juce_recommended_warning_flags)
+target_link_libraries(GumboPot PRIVATE juce::juce_audio_utils juce::juce_dsp PUBLIC juce::juce_recommended_config_flags juce::juce_recommended_warning_flags)
 if(GUMBO_BUILD_TESTS)
     enable_testing()
     juce_add_console_app(GumboNativeChecks PRODUCT_NAME "Gumbo Native Checks")
     target_sources(GumboNativeChecks PRIVATE tests/NativeChecks.cpp)
     target_compile_definitions(GumboNativeChecks PRIVATE JUCE_MODAL_LOOPS_PERMITTED=1)
-    target_link_libraries(GumboNativeChecks PRIVATE GumboPot GumboAssets juce::juce_audio_utils juce::juce_dsp)
+    target_link_libraries(GumboNativeChecks PRIVATE GumboPot juce::juce_audio_utils juce::juce_dsp)
     target_include_directories(GumboNativeChecks PRIVATE Source)
     add_test(NAME native_audio_state_export COMMAND GumboNativeChecks)
 endif()

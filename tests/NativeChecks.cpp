@@ -281,6 +281,42 @@ int main(int argc, char **argv)
         juce::FileOutputStream output{juce::File(argv[1])};
         juce::PNGImageFormat png;
         check(png.writeImageToStream(image, output), "native JUCE interface PNG rendered from the actual editor");
+        output.flush();
+        // Exercise real editor timers, then freeze decorative motion while audition remains on.
+        auto snapshot = [&editor, &png]()
+        {
+            juce::MemoryOutputStream bytes;
+            png.writeImageToStream(editor->createComponentSnapshot(editor->getLocalBounds()), bytes);
+            return bytes.getMemoryBlock();
+        };
+        restored.audition.store(true);
+        restored.outputPeak.store(.3f);
+        juce::MessageManager::getInstance()->runDispatchLoopUntil(150);
+        const auto first = snapshot();
+        const auto frames = juce::File(argv[1]).getSiblingFile("MotionFrames");
+        frames.createDirectory();
+        for(int frame=0;frame<16;++frame)
+        {
+            juce::MessageManager::getInstance()->runDispatchLoopUntil(67);
+            juce::FileOutputStream frameOutput(frames.getChildFile(juce::String(frame).paddedLeft('0',3)+".png"));
+            png.writeImageToStream(editor->createComponentSnapshot(editor->getLocalBounds()), frameOutput);
+        }
+        check(first != snapshot(), "native pot animation advances during playback");
+        juce::Button* motion = nullptr;
+        for(auto* child : editor->getChildren())
+            if(auto* button=dynamic_cast<juce::Button*>(child))
+                if(button->getButtonText()=="MOTION ON") motion=button;
+        check(motion != nullptr, "motion control is available in native editor");
+        if(motion)
+        {
+            motion->setToggleState(false,juce::sendNotification);
+            if(motion->onClick) motion->onClick();
+            juce::MessageManager::getInstance()->runDispatchLoopUntil(100);
+            const auto paused=snapshot();
+            juce::MessageManager::getInstance()->runDispatchLoopUntil(200);
+            check(paused==snapshot() && restored.audition.load(), "motion off freezes decoration without stopping audio");
+        }
+
     }
     std::cout << checks << " checks, " << failures << " failures" << std::endl;
     return failures ? 1 : 0;

@@ -1,12 +1,11 @@
 #include "PluginEditor.h"
-#include "BinaryData.h"
 #include <cmath>
 namespace
 {
-const juce::Colour paper(0xffead5b2), muted(0xffaeb9b8), gold(0xffe7b361), green(0xff60c5a2);
-const std::array<juce::Colour, 5> accents{juce::Colour(0xffec7156), juce::Colour(0xffe4b858), juce::Colour(0xff78bd83),
-                                          juce::Colour(0xff5cbadd), juce::Colour(0xffd6bd97)};
-const std::array<juce::String, 5> names{"ANDOUILLE", "SHRIMP", "OKRA", "FILE", "BAY LEAF"};
+const juce::Colour paper(0xffeee3ca), muted(0xffada699), gold(0xffed9c54), green(0xffa8bd83);
+const std::array<juce::Colour, 5> accents{juce::Colour(0xffe77b55), juce::Colour(0xffd7b667), juce::Colour(0xff9eae74),
+                                          juce::Colour(0xff7ca6a0), juce::Colour(0xffc39b81)};
+const std::array<juce::String, 5> names{"ANDOUILLE", "SHRIMP", "OKRA", "FILÉ", "BAY LEAF"};
 const std::array<juce::String, 5> roles{"DRUMS / PERCUSSION", "BASS", "MELODY / KEYS", "TEXTURES / FX",
                                         "VOCALS / CHOPS"};
 } // namespace
@@ -28,50 +27,60 @@ KitchenLookAndFeel::KitchenLookAndFeel()
 void KitchenLookAndFeel::drawRotarySlider(juce::Graphics &g, int x, int y, int width, int height, float position,
                                           float start, float end, juce::Slider &slider)
 {
-    auto bounds = juce::Rectangle<float>((float)x, (float)y, (float)width, (float)height).reduced(7);
-    const float radius = juce::jmin(bounds.getWidth(), bounds.getHeight()) * .5f, cx = bounds.getCentreX(),
-                cy = bounds.getCentreY();
+    const auto bounds = juce::Rectangle<float>((float)x, (float)y, (float)width, (float)height).reduced(6);
+    const float r = juce::jmin(bounds.getWidth(), bounds.getHeight()) * .5f;
+    const auto c = bounds.getCentre();
     const auto accent = slider.findColour(juce::Slider::rotarySliderFillColourId);
     const float angle = start + position * (end - start);
-    juce::Path rail;
-    rail.addCentredArc(cx, cy, radius, radius, 0, start, end, true);
-    g.setColour(juce::Colour(0xff3d4641));
-    g.strokePath(rail, juce::PathStrokeType(2.4f));
-    juce::Path arc;
-    arc.addCentredArc(cx, cy, radius, radius, 0, start, angle, true);
-    g.setColour(accent);
-    g.strokePath(arc, juce::PathStrokeType(2.4f));
-    auto knob = juce::Rectangle<float>(cx - radius + 5, cy - radius + 5, 2 * radius - 10, 2 * radius - 10);
-    g.setGradientFill(juce::ColourGradient(juce::Colour(0xff49504a), cx, knob.getY(), juce::Colour(0xff101616), cx,
-                                           knob.getBottom(), false));
-    g.fillEllipse(knob);
-    g.setColour(juce::Colour(0xff6c7365));
-    g.drawEllipse(knob, 1);
-    g.setColour(juce::Colour(0xff070b0b));
-    g.drawEllipse(knob.reduced(3), 1);
-    const auto a = juce::Point<float>(cx, cy).getPointOnCircumference(radius - 9, angle),
-               b = juce::Point<float>(cx, cy).getPointOnCircumference(radius * .36f, angle);
+    for (int n = 0; n <= 10; ++n)
+    {
+        const float a = start + n * (end - start) / 10.0f;
+        g.setColour(n <= position * 10 ? accent : juce::Colour(0xff615b50));
+        g.drawLine({c.getPointOnCircumference(r, a), c.getPointOnCircumference(r - 3, a)}, 1.4f);
+    }
+    auto body = juce::Rectangle<float>(c.x-r+7, c.y-r+7, 2*r-14, 2*r-14);
+    g.setColour(juce::Colours::black.withAlpha(.45f));
+    g.fillEllipse(body.translated(0, 3));
+    g.setGradientFill(juce::ColourGradient(juce::Colour(0xff55554d), c.x, body.getY(),
+                                          juce::Colour(0xff181b19), c.x, body.getBottom(), false));
+    g.fillEllipse(body);
+    g.setColour(juce::Colour(0xff818071));
+    g.drawEllipse(body, 1);
+    for (int n = 0; n < 24; ++n)
+    {
+        const float a = n * juce::MathConstants<float>::twoPi / 24;
+        g.setColour(juce::Colours::black.withAlpha(.45f));
+        g.drawLine({c.getPointOnCircumference(r-8, a), c.getPointOnCircumference(r-11, a)}, 1);
+    }
+    juce::Path pointer;
+    pointer.addRoundedRectangle(-3, -r+10, 6, juce::jmax(5.0f, r*.65f), 2);
     g.setColour(paper);
-    g.drawLine({a, b}, 2.2f);
+    g.fillPath(pointer, juce::AffineTransform::rotation(angle).translated(c.x, c.y));
+    g.setColour(accent.withAlpha(slider.isMouseOverOrDragging() ? .9f : .4f));
+    g.fillEllipse(c.x-2, c.y-2, 4, 4);
 }
 void KitchenLookAndFeel::drawButtonBackground(juce::Graphics &g, juce::Button &button, const juce::Colour &, bool over,
                                               bool down)
 {
-    const auto bounds = button.getLocalBounds().toFloat().reduced(.6f);
+    auto b = button.getLocalBounds().toFloat().reduced(1);
     auto fill = button.findColour(juce::TextButton::buttonColourId);
+    if (button.getToggleState()) fill = button.findColour(juce::TextButton::buttonOnColourId);
+    if (over) fill = fill.brighter(.12f);
+    if (down) fill = fill.darker(.2f);
+    if (!button.isEnabled()) fill = fill.withMultipliedAlpha(.4f);
+    g.setColour(juce::Colour(0xff080b0a));
+    g.fillRoundedRectangle(b.translated(0, 2), 2);
+    g.setColour(fill);
+    g.fillRoundedRectangle(b, 2);
+    g.setColour(button.getToggleState() ? paper.withAlpha(.65f) : juce::Colour(0xff777365));
+    g.drawRoundedRectangle(b, 2, .8f);
+    g.setColour(juce::Colours::white.withAlpha(down ? .02f : .12f));
+    g.drawLine(b.getX()+2, b.getY()+1, b.getRight()-2, b.getY()+1);
     if (button.getToggleState())
-        fill = button.findColour(juce::TextButton::buttonOnColourId);
-    if (over)
-        fill = fill.brighter(.12f);
-    if (down)
-        fill = fill.darker(.12f);
-    if (!button.isEnabled())
-        fill = fill.withMultipliedAlpha(.4f);
-    g.setGradientFill(
-        juce::ColourGradient(fill.brighter(.07f), 0, bounds.getY(), fill.darker(.12f), 0, bounds.getBottom(), false));
-    g.fillRoundedRectangle(bounds, 5);
-    g.setColour(button.getToggleState() ? gold : juce::Colour(0xff65685a).withAlpha(button.isEnabled() ? .8f : .35f));
-    g.drawRoundedRectangle(bounds, 5, 1);
+    {
+        g.setColour(juce::Colour(0xff292b24));
+        g.fillEllipse(b.getX()+6, b.getCentreY()-1.5f, 3, 3);
+    }
 }
 juce::Font KitchenLookAndFeel::getTextButtonFont(juce::TextButton &, int height)
 {
@@ -81,7 +90,17 @@ GumboPotAudioProcessorEditor::GumboPotAudioProcessorEditor(GumboPotAudioProcesso
     : AudioProcessorEditor(&p), processor(p)
 {
     setLookAndFeel(&theme);
-    backdrop = juce::ImageCache::getFromMemory(BinaryData::kitchenbackdrop_jpg, BinaryData::kitchenbackdrop_jpgSize);
+    // Fixed, code-drawn enamel grain. No photographic or generated artwork.
+    surface = juce::Image(juce::Image::RGB, 1440, 900, true);
+    juce::Graphics enamel(surface);
+    enamel.fillAll(juce::Colour(0xff292e29));
+    juce::Random grain(0x47554d42);
+    for (int n = 0; n < 42000; ++n)
+    {
+        enamel.setColour((n % 2 ? juce::Colours::white : juce::Colours::black).withAlpha(.025f));
+        enamel.fillRect(grain.nextInt(1440), grain.nextInt(900), 1, 1);
+    }
+    lastFrameMs = juce::Time::getMillisecondCounterHiRes();
     ui = processor.getUiState();
     addSlider(master, "master", gold);
     addSlider(gumbo, "gumbo", gold);
@@ -98,16 +117,16 @@ GumboPotAudioProcessorEditor::GumboPotAudioProcessorEditor(GumboPotAudioProcesso
         addSlider(gains[index], prefix + "gain", accents[index]);
         addSlider(pans[index], prefix + "pan", accents[index]);
         addSlider(filters[index], prefix + "filter", accents[index]);
-        gains[index].setTooltip("Scoop: layer gain. Double-click to reset.");
-        pans[index].setTooltip("Place: stereo balance. Double-click for centre.");
-        filters[index].setTooltip("Strain: low-pass cutoff, 180 Hz to 18 kHz (limited by sample rate).");
+        gains[index].setTooltip("Level. Double-click to reset.");
+        pans[index].setTooltip("Pan. Double-click for centre.");
+        filters[index].setTooltip("Low-pass filter: 180 Hz to 18 kHz.");
         gains[index].setDoubleClickReturnValue(true, .9);
         pans[index].setDoubleClickReturnValue(true, 0);
         filters[index].setDoubleClickReturnValue(true, 1);
         for (auto *b : {&locks[index], &solos[index], &loads[index]})
         {
             addAndMakeVisible(*b);
-            b->setColour(juce::TextButton::buttonColourId, juce::Colour(0xff142021));
+            b->setColour(juce::TextButton::buttonColourId, juce::Colour(0xff30392f));
             b->setColour(juce::TextButton::buttonOnColourId, accents[index]);
         }
         locks[index].setButtonText("LOCK");
@@ -116,14 +135,14 @@ GumboPotAudioProcessorEditor::GumboPotAudioProcessorEditor(GumboPotAudioProcesso
         solos[index].setButtonText("SOLO");
         solos[index].setClickingTogglesState(true);
         solos[index].onClick = [this, i] { processor.setSolo(i, solos[(size_t)i].getToggleState()); };
-        loads[index].setButtonText("LOAD SOUND");
+        loads[index].setButtonText("LOAD");
         loads[index].onClick = [this, i] { chooseAudio(i); };
     }
     for (auto *b : {&importButton, &demoButton, &recipeButton, &saveButton, &stirButton, &playButton, &mixButton,
                     &stemButton, &spliceButton})
     {
         addAndMakeVisible(*b);
-        b->setColour(juce::TextButton::buttonColourId, juce::Colour(0xff182122));
+        b->setColour(juce::TextButton::buttonColourId, juce::Colour(0xff30392f));
         b->setColour(juce::TextButton::buttonOnColourId, gold);
     }
     stirButton.setColour(juce::TextButton::buttonColourId, gold);
@@ -132,7 +151,7 @@ GumboPotAudioProcessorEditor::GumboPotAudioProcessorEditor(GumboPotAudioProcesso
     demoButton.onClick = [this] { processor.loadDemo(); };
     recipeButton.onClick = [this] { chooseRecipe(); };
     saveButton.onClick = [this] { saveRecipe(); };
-    stirButton.onClick = [this] { processor.doReroll(); };
+    stirButton.onClick = [this] { stirEnergy = 1.0f; processor.doReroll(); };
     playButton.setClickingTogglesState(true);
     playButton.onClick = [this] { processor.audition.store(playButton.getToggleState()); };
     mixButton.onClick = [this] { chooseExport(false); };
@@ -140,6 +159,11 @@ GumboPotAudioProcessorEditor::GumboPotAudioProcessorEditor(GumboPotAudioProcesso
     spliceButton.setTooltip("Start the optional included Splice companion, then open it in your browser. Account "
                             "authentication remains in the companion.");
     spliceButton.onClick = [] { juce::URL("http://127.0.0.1:5173").launchInDefaultBrowser(); };
+    addAndMakeVisible(motionButton);
+    motionButton.setClickingTogglesState(true);
+    motionButton.setToggleState(true, juce::dontSendNotification);
+    motionButton.setTooltip("Pause decorative motion. Audio and controls remain active.");
+    motionButton.onClick = [this] { motionEnabled = motionButton.getToggleState(); repaint(); };
     bars.addItem("4 bars", 4);
     bars.addItem("8 bars", 8);
     bars.addItem("16 bars", 16);
@@ -153,7 +177,7 @@ GumboPotAudioProcessorEditor::GumboPotAudioProcessorEditor(GumboPotAudioProcesso
     setResizeLimits(1100, 688, 1920, 1200);
     getConstrainer()->setFixedAspectRatio(1.6);
     setSize(1440, 900);
-    startTimerHz(15);
+    startTimerHz(30);
 }
 GumboPotAudioProcessorEditor::~GumboPotAudioProcessorEditor()
 {
@@ -206,8 +230,8 @@ void GumboPotAudioProcessorEditor::addSlider(juce::Slider &s, const juce::String
         }
         return input.getDoubleValue() / 100.0;
     };
-    s.setColour(juce::Slider::textBoxOutlineColourId, juce::Colour(0xff3b4942));
-    s.setColour(juce::Slider::textBoxBackgroundColourId, juce::Colour(0xff10191a));
+    s.setColour(juce::Slider::textBoxOutlineColourId, juce::Colours::transparentBlack);
+    s.setColour(juce::Slider::textBoxBackgroundColourId, juce::Colours::transparentBlack);
     s.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 72, 18);
     s.updateText();
 }
@@ -218,112 +242,190 @@ void GumboPotAudioProcessorEditor::text(juce::Graphics &g, const juce::String &v
     g.setFont(juce::FontOptions(size, bold ? juce::Font::bold : juce::Font::plain));
     g.drawFittedText(value, bounds.toNearestInt(), juce::Justification(justification), 2);
 }
-void GumboPotAudioProcessorEditor::drawPanel(juce::Graphics &g, juce::Rectangle<float> bounds, float alpha)
+void GumboPotAudioProcessorEditor::drawPanel(juce::Graphics &g, juce::Rectangle<float> b, float alpha)
 {
-    g.setColour(juce::Colour(0xff0c1416).withAlpha(alpha));
-    g.fillRoundedRectangle(bounds, 9);
-    g.setColour(juce::Colour(0xff727462).withAlpha(.5f));
-    g.drawRoundedRectangle(bounds, 9, 1);
+    g.setColour(juce::Colour(0xff171e1c).withAlpha(alpha));
+    g.fillRect(b);
+    g.setColour(juce::Colour(0xff777365).withAlpha(.45f));
+    g.drawHorizontalLine((int)b.getY(), b.getX(), b.getRight());
+    g.setColour(juce::Colours::black.withAlpha(.6f));
+    g.drawHorizontalLine((int)b.getBottom(), b.getX(), b.getRight());
 }
 void GumboPotAudioProcessorEditor::paint(juce::Graphics &raw)
 {
     juce::Graphics::ScopedSaveState state(raw);
     raw.addTransform(juce::AffineTransform::scale(scale));
     auto &g = raw;
-    g.fillAll(juce::Colour(0xff0d1415));
-    if (backdrop.isValid())
-        g.drawImage(backdrop, {0, 0, 1440, 900}, juce::RectanglePlacement::fillDestination);
-    g.setColour(juce::Colour(0xff050c0e).withAlpha(.36f));
-    g.fillAll();
-    g.setColour(juce::Colour(0xff0b1113).withAlpha(.95f));
-    g.fillRect(0, 0, 1440, 90);
-    g.setColour(gold.withAlpha(.5f));
-    g.drawHorizontalLine(90, 0, 1440);
-    g.setFont(juce::FontOptions("Georgia", 38, juce::Font::bold));
-    g.setColour(paper);
-    g.drawText("GUMBO POT", 28, 15, 320, 46, juce::Justification::centredLeft);
-    text(g, "A N A L O G   B E A T   K I T C H E N", {31, 58, 310, 16}, 10, gold);
-    text(g, "FIVE INGREDIENTS.\nENDLESS POSSIBILITIES.", {363, 24, 250, 43}, 13, muted);
-    text(g, "NATIVE INSTRUMENT   /   VST3 + AU", {1080, 32, 330, 24}, 11, paper, juce::Justification::centredRight,
-         true);
-    drawPanel(g, {20, 110, 218, 680});
-    drawPanel(g, {1204, 110, 216, 300});
-    drawPanel(g, {1204, 428, 216, 232});
-    drawPanel(g, {1204, 678, 216, 112});
-    text(g, "THE PANTRY", {38, 129, 180, 24}, 15, paper, juce::Justification::centredLeft, true);
-    text(g, "YOUR SOUNDS. YOUR RECIPE.", {38, 154, 180, 18}, 9, gold);
-    text(g, ui.pantryNames.isEmpty() && ui.layers[0].active ? "5 HOUSE INGREDIENTS" : juce::String(ui.pantryNames.size()) + " LOCAL SAMPLES", {38, 259, 180, 20}, 10, muted);
-    text(g, "Double-click a pantry sound to\nfill the first unlocked bowl.", {38, 641, 178, 38}, 11, muted);
-    text(g, "WAV / AIFF / FLAC\nBPM from filename; default 120.", {38, 695, 180, 38}, 10, muted);
-    text(g, "WHAT'S COOKIN'?", {270, 119, 650, 44}, 30, paper, juce::Justification::centredLeft, true);
-    text(g, "Layer your leftovers. Lock a favourite. Stir something new.", {272, 165, 690, 26}, 14, paper);
-    text(g, ui.title, {272, 201, 690, 24}, 12, gold);
-    g.setColour(gold.withAlpha(.5f));
-    g.drawLine(266, 246, 1177, 246, 1);
-    for (int i = 0; i < 5; ++i)
+    g.drawImageAt(surface, 0, 0);
+    // Porcelain fascia, oxidised iron chassis and machined screws.
+    g.setColour(juce::Colour(0xffe5d9bf)); g.fillRect(0, 0, 1440, 90);
+    g.setColour(juce::Colour(0xff723e32)); g.fillRect(0, 86, 1440, 4);
+    auto screw = [&g](float x, float y)
     {
-        const auto index = (size_t)i;
-        const float x = 264.0f + i * 184;
-        auto bounds = juce::Rectangle<float>(x, 274, 172, 420);
-        drawPanel(g, bounds, .89f);
-        g.setColour(accents[index]);
-        g.fillRoundedRectangle(x + 10, 286, 152, 56, 4);
-        text(g, names[index], {x + 12, 292, 148, 23}, i == 0 ? 16.0f : 18.0f, juce::Colour(0xff101c1b),
-             juce::Justification::centred, true);
-        text(g, roles[index], {x + 12, 319, 148, 14}, 8.5f, juce::Colour(0xff142321), juce::Justification::centred);
-        const auto &info = ui.layers[index];
-        g.setColour(accents[index].withAlpha(.85f));
-        for (int n = 0; n < 128; ++n)
-        {
-            const float h = info.active ? juce::jlimit(1.0f, 48.0f, info.waveform[(size_t)n] * 78) : 1.0f;
-            const float xx = x + 15 + n * 142 / 128.0f;
-            g.drawLine(xx, 383 - h * .5f, xx, 383 + h * .5f, 1);
-        }
-        text(g, info.active ? info.name : "ADD AN INGREDIENT", {x + 15, 420, 142, 34}, 12, info.active ? paper : muted,
-             juce::Justification::centred, true);
-        text(g,
-             info.active ? juce::String(info.bpm, 0) + " BPM  /  " + juce::String(info.duration, 1) + " s"
-                         : "DROP AUDIO HERE",
-             {x + 14, 455, 144, 20}, 10, muted, juce::Justification::centred);
-        text(g, "SCOOP", {x + 25, 481, 122, 16}, 10, muted, juce::Justification::centred);
-        text(g, "PLACE", {x + 10, 585, 75, 15}, 9, muted, juce::Justification::centred);
-        text(g, "STRAIN", {x + 87, 585, 75, 15}, 9, muted, juce::Justification::centred);
+        g.setColour(juce::Colour(0xff111715)); g.fillEllipse(x-4, y-3, 8, 8);
+        g.setColour(juce::Colour(0xff8f8a78)); g.fillEllipse(x-3, y-3, 6, 6);
+        g.setColour(juce::Colour(0xff333c34)); g.drawLine(x-2, y+1, x+2, y-1, 1);
+    };
+    for (float x : {15.0f, 1425.0f}) for (float y : {16.0f, 74.0f, 881.0f}) screw(x,y);
+    // Bespoke pot seal: looped handles, steam and a stamped five-channel mark.
+    g.setColour(juce::Colour(0xff343d33));
+    g.fillRoundedRectangle(42, 32, 62, 37, 13);
+    g.drawRoundedRectangle(33, 38, 19, 16, 7, 3);
+    g.drawRoundedRectangle(94, 38, 19, 16, 7, 3);
+    g.drawLine(40, 29, 106, 29, 4);
+    for (int i=0;i<3;++i)
+    {
+        juce::Path steam; const float x=58.0f+i*15;
+        steam.startNewSubPath(x,23); steam.cubicTo(x-6,17,x+5,16,x+1,9);
+        g.strokePath(steam,juce::PathStrokeType(1.8f));
     }
-    text(g, "LOCK WHAT YOU LOVE. STIR THE REST.", {358, 705, 720, 20}, 10, paper, juce::Justification::centred);
-    text(g, processor.loading.load() ? "PREPARING YOUR INGREDIENTS..." : ui.message, {264, 781, 910, 22}, 11, paper,
-         juce::Justification::centred);
-    drawPanel(g, {250, 808, 932, 80}, .96f);
-    text(g, "MASTER", {278, 815, 90, 14}, 9, muted, juce::Justification::centred);
-    text(g, "GUMBO", {406, 815, 90, 14}, 9, muted, juce::Justification::centred);
-    text(g, "CAYENNE", {534, 815, 90, 14}, 9, muted, juce::Justification::centred);
-    text(g, "SEED", {669, 821, 150, 14}, 9, muted, juce::Justification::centred);
-    text(g, "ON THE STOVE", {1222, 128, 180, 24}, 14, paper, juce::Justification::centredLeft, true);
-    int active = 0;
-    for (const auto &info : ui.layers)
-        if (info.active)
-            ++active;
-    text(g, juce::String(active) + " / 5", {1222, 166, 180, 58}, 42, paper, juce::Justification::centred, true);
-    text(g, "INGREDIENTS LOADED", {1222, 225, 180, 18}, 10, gold, juce::Justification::centred);
-    text(g, juce::String(processor.hostTempo.load(), 1) + " BPM", {1222, 258, 180, 30}, 23, paper,
-         juce::Justification::centred, true);
-    text(g,
-         processor.hostPlaying.load() ? "DAW TRANSPORT RUNNING"
-         : processor.audition.load()  ? "AUDITION RUNNING"
-                                      : "READY FOR YOUR DAW",
-         {1222, 294, 180, 18}, 9, green, juce::Justification::centred);
-    const float peak = processor.outputPeak.load();
-    g.setColour(juce::Colour(0xff263c34));
-    g.fillRoundedRectangle(1225, 335, 174, 8, 4);
-    g.setColour(peak >= 1 ? accents[0] : green);
-    g.fillRoundedRectangle(1225, 335, 174 * juce::jlimit(0.0f, 1.0f, peak), 8, 4);
-    text(g, peak > 0 ? juce::String(juce::Decibels::gainToDecibels(peak), 1) + " dBFS" : "-inf dBFS",
-         {1222, 352, 180, 18}, 11, muted, juce::Justification::centred);
-    text(g, "0 SAMPLES LATENCY", {1222, 382, 180, 18}, 9, muted, juce::Justification::centred);
-    text(g, "SERVE TO YOUR DAW", {1222, 447, 180, 22}, 12, paper, juce::Justification::centredLeft, true);
-    text(g, "44.1 kHz / 16-bit stereo WAV\nTempo sync resamples pitch.", {1222, 600, 180, 38}, 10, muted);
-    text(g, "SPLICE", {1222, 693, 180, 20}, 12, paper, juce::Justification::centredLeft, true);
-    text(g, "Optional companion login\nRuns separately from the plugin.", {1222, 718, 180, 32}, 10, muted);
-    text(g, "GOOD SOUNDS. MAKE GOOD DAYS.", {30, 839, 200, 25}, 10, paper, juce::Justification::centred, true);
+    g.setColour(juce::Colour(0xffe5d9bf));
+    for (int i=0;i<5;++i) g.fillRect(55+i*8,44,3,11);
+    g.setColour(juce::Colour(0xff30392f));
+    g.setFont(juce::FontOptions("Avenir Next Condensed", 48, juce::Font::bold));
+    g.drawText("GUMBO POT",132,12,420,63,juce::Justification::centredLeft);
+    for (int i=0;i<5;++i)
+    {
+        g.setColour(accents[(size_t)i].darker(.3f));
+        g.fillRoundedRectangle(566+i*18,33,10,27,3);
+    }
+    text(g,ui.title,{720,27,420,32},14,juce::Colour(0xff343d33),juce::Justification::centredRight);
+    // One continuous mixer deck, rather than five floating cards.
+    drawPanel(g,{250,110,932,680});
+    drawPanel(g,{20,110,218,680});
+    drawPanel(g,{1204,110,216,680});
+    text(g,"SAMPLES",{38,128,180,25},14,paper,juce::Justification::centredLeft,true);
+    text(g,juce::String(getNumRows())+" IN PANTRY",{38,260,180,18},10,muted);
+    text(g,"Double-click to load",{38,642,180,24},11,muted);
+    text(g,"WAV / AIFF / FLAC",{38,693,180,20},10,muted);
+    text(g,"BPM from filename",{38,716,180,16},10,muted);
+    text(g,"RECIPE",{272,128,660,24},11,muted);
+    text(g,ui.title,{272,154,660,37},23,paper,juce::Justification::centredLeft,true);
+    text(g,"MIX",{272,217,660,20},10,muted);
+    // A five-stop route stitched into the fascia follows playback tempo.
+    for (int i=0;i<32;++i)
+    {
+        const bool lit=motionEnabled && activity>.01f && i==(int)(beatPhase*8)%32;
+        g.setColour(lit?gold:juce::Colour(0xff4b5145));
+        g.fillRect(744+i*13,221,lit?7:3,lit?8:4);
+    }
+    for (int i=0;i<5;++i)
+    {
+        const auto k=(size_t)i; const float x=264.0f+i*184, cx=x+86;
+        const auto &info=ui.layers[k]; const auto ink=accents[k];
+        if(i>0) {g.setColour(juce::Colour(0xff55594d).withAlpha(.45f));g.drawLine(x-6,273,x-6,691);}
+        text(g,juce::String(i+1).paddedLeft('0',2),{x+8,260,30,20},10,muted);
+        text(g,names[k],{x+8,282,156,24},15,paper,juce::Justification::centred,true);
+        text(g,roles[k],{x+4,309,164,17},9,ink,juce::Justification::centred);
+        // Hand-built top-view cast iron pot. The soup contains the real waveform.
+        const auto pot=juce::Rectangle<float>(cx-64,343,128,80);
+        g.setColour(juce::Colours::black.withAlpha(.5f));g.fillEllipse(pot.translated(0,6));
+        g.setColour(juce::Colour(0xff0b100e));
+        g.drawRoundedRectangle(cx-82,370,28,24,9,5);g.drawRoundedRectangle(cx+54,370,28,24,9,5);
+        g.fillEllipse(pot);g.setColour(juce::Colour(0xff666b5b));g.drawEllipse(pot,2);
+        auto soup=pot.reduced(8,7);
+        g.setColour(info.active?ink.darker(.65f):juce::Colour(0xff242d27));g.fillEllipse(soup);
+        g.setColour(ink.withAlpha(info.active?.7f:.15f));g.drawEllipse(soup,1);
+        {
+            juce::Graphics::ScopedSaveState clip(g);juce::Path mask;mask.addEllipse(soup);g.reduceClipRegion(mask);
+            g.setColour(ink.withAlpha(.85f));
+            for(int n=0;n<128;++n)
+            {
+                const float h=info.active?juce::jlimit(1.0f,43.0f,info.waveform[(size_t)n]*68):1;
+                const float xx=cx-54+n*108.0f/128;
+                g.drawLine(xx,383-h*.5f,xx,383+h*.5f,.8f);
+            }
+            if(info.active && motionEnabled && activity>.01f)
+            {
+                const float sweep=cx-54+std::fmod(beatPhase/4.0f,1.0f)*108;
+                g.setColour(paper.withAlpha(.55f*activity));g.drawLine(sweep,350,sweep,419,1);
+                for(int n=0;n<7;++n)
+                {
+                    const float phase=std::fmod(animationSeconds*(.2f+n*.018f)+n*.143f+i*.17f,1.0f);
+                    const float bx=cx+std::sin(n*3.7f+i)*42;
+                    const float by=405-phase*53, r=1.5f+phase*2;
+                    g.setColour(paper.withAlpha((1-phase)*.55f*activity));g.drawEllipse(bx-r,by-r,r*2,r*2,.8f);
+                }
+            }
+        }
+        // Steam rises only with playback; stirring adds a short swirl.
+        if(info.active && motionEnabled && (activity>.01f || stirEnergy>.01f))
+            for(int n=0;n<3;++n)
+            {
+                juce::Path steam;
+                for(int step=0;step<20;++step)
+                {
+                    const float t=step/19.0f;
+                    const float xx=cx+(n-1)*24+std::sin(t*7-animationSeconds*2+n+i)* (4+t*5+stirEnergy*9);
+                    const float yy=362-t*32;
+                    if(step==0)steam.startNewSubPath(xx,yy);else steam.lineTo(xx,yy);
+                }
+                g.setColour(paper.withAlpha(.18f*juce::jmax(activity,stirEnergy)));
+                g.strokePath(steam,juce::PathStrokeType(1.2f));
+            }
+        // Burner teeth illuminate with real output energy; no perpetual fake meter.
+        for(int n=0;n<9;++n)
+        {
+            g.setColour(ink.withAlpha(.12f+activity*.65f));
+            g.fillRect(cx-36+n*9,428,5,3+(n%2)*2);
+        }
+        text(g,info.active?info.name:"Empty",{x+12,443,148,27},12,paper,juce::Justification::centred,true);
+        text(g,info.active?juce::String(info.bpm,0)+" BPM / "+juce::String(info.duration,1)+" s":"Drop audio",{x+9,472,154,18},10,muted,juce::Justification::centred);
+        text(g,"LEVEL",{x+25,498,122,15},9,muted,juce::Justification::centred);
+        text(g,"PAN",{x+10,590,75,15},9,muted,juce::Justification::centred);
+        text(g,"FILTER",{x+87,590,75,15},9,muted,juce::Justification::centred);
+    }
+    // Main lever is surrounded by a rotating stir track on each activation.
+    g.setColour(juce::Colour(0xff4b5145));g.drawLine(280,742,460,742);g.drawLine(980,742,1155,742);
+    for(int i=0;i<5;++i)
+    {
+        const float xx=294+i*33;
+        const float yy=742+(motionEnabled?std::sin(animationSeconds*9-i*.6f)*stirEnergy*9:0);
+        g.setColour(accents[(size_t)i]);g.fillEllipse(xx,yy-2,4,4);
+    }
+    text(g,processor.loading.load()?"Loading...":statusText(),{264,778,910,22},11,muted,juce::Justification::centred);
+    drawPanel(g,{250,808,932,80});
+    text(g,"OUTPUT",{278,815,90,14},9,muted,juce::Justification::centred);
+    text(g,"BLEND",{406,815,90,14},9,muted,juce::Justification::centred);
+    text(g,"VARIATION",{534,815,90,14},9,muted,juce::Justification::centred);
+    text(g,"SEED",{669,821,150,14},9,muted,juce::Justification::centred);
+    text(g,"TEMPO",{1222,128,180,22},11,muted);
+    text(g,juce::String(processor.hostTempo.load(),1),{1222,160,180,53},44,paper,juce::Justification::centred,true);
+    text(g,"BPM",{1222,214,180,20},11,muted,juce::Justification::centred);
+    const bool running=processor.hostPlaying.load()||processor.audition.load();
+    g.setColour(running?green:juce::Colour(0xff64675b));g.fillEllipse(1252,260,6,6);
+    text(g,running?"PLAYING":"STOPPED",{1270,251,115,24},11,muted);
+    // Segmented signal meter.
+    const float peak=processor.outputPeak.load();
+    for(int n=0;n<24;++n)
+    {
+        const float db=-60+n*60.0f/23;
+        const bool lit=peak>juce::Decibels::decibelsToGain(db);
+        g.setColour(lit?(n>21?accents[0]:green):juce::Colour(0xff343f34));
+        g.fillRect(1226+n*7,303,4,20);
+    }
+    text(g,peak>0?juce::String(juce::Decibels::gainToDecibels(peak),1)+" dBFS":"-inf dBFS",{1222,337,180,22},12,muted,juce::Justification::centred);
+    g.setColour(juce::Colour(0xff55594d));g.drawLine(1222,403,1402,403);
+    text(g,"EXPORT",{1222,431,180,23},13,paper,juce::Justification::centredLeft,true);
+    text(g,"44.1 kHz / 16-bit WAV",{1222,610,180,20},10,muted);
+    text(g,"Tempo changes pitch",{1222,635,180,17},10,muted);
+    g.setColour(juce::Colour(0xff55594d));g.drawLine(1222,681,1402,681);
+    text(g,"SPLICE",{1222,699,180,20},12,paper,juce::Justification::centredLeft,true);
+    text(g,"Separate browser companion",{1222,725,180,18},10,muted);
+    for(int i=0;i<2;++i)
+    {
+        const float x=91.0f+i*68;
+        g.setColour(juce::Colour(0xff747565));g.fillEllipse(x-12,837,24,24);
+        g.setColour(juce::Colour(0xff0c1410));g.fillEllipse(x-8,841,16,16);
+        g.setColour(juce::Colour(0xff414c3e));g.drawEllipse(x-5,844,10,10,1);
+        text(g,i==0?"L":"R",{x-12,866,24,15},9,muted,juce::Justification::centred);
+    }
+}
+juce::String GumboPotAudioProcessorEditor::statusText() const
+{
+    // Preserve actionable errors; keep the idle interface free of slogans.
+    if(ui.message.startsWithIgnoreCase("Ready") || ui.message.startsWithIgnoreCase("Loaded house")) return {};
+    return ui.message;
 }
 void GumboPotAudioProcessorEditor::resized()
 {
@@ -334,6 +436,7 @@ void GumboPotAudioProcessorEditor::resized()
                         .transformedBy(juce::AffineTransform::scale(scale))
                         .toNearestInt());
     };
+    set(motionButton, 1215, 29, 185, 30);
     set(importButton, 38, 184, 180, 32);
     set(demoButton, 38, 223, 180, 30);
     set(pantryList, 32, 288, 194, 342);
@@ -342,12 +445,12 @@ void GumboPotAudioProcessorEditor::resized()
     for (int i = 0; i < 5; ++i)
     {
         const int x = 264 + i * 184;
-        set(gains[(size_t)i], x + 43, 499, 86, 84);
+        set(gains[(size_t)i], x + 43, 511, 86, 78);
         set(pans[(size_t)i], x + 13, 601, 65, 65);
         set(filters[(size_t)i], x + 94, 601, 65, 65);
         set(locks[(size_t)i], x + 13, 669, 68, 21);
         set(solos[(size_t)i], x + 91, 669, 68, 21);
-        set(loads[(size_t)i], x + 14, 394, 144, 24);
+        set(loads[(size_t)i], x + 25, 696, 122, 24);
     }
     set(stirButton, 478, 733, 484, 44);
     set(master, 277, 831, 98, 55);
@@ -363,10 +466,21 @@ void GumboPotAudioProcessorEditor::resized()
 void GumboPotAudioProcessorEditor::timerCallback()
 {
     auto next = processor.getUiState();
-    const bool changed = next.revision != ui.revision || next.message != ui.message || next.title != ui.title ||
-                         next.pantryPaths != ui.pantryPaths;
+    const bool changed = next.revision != ui.revision || next.pantryPaths != ui.pantryPaths;
+    const double now = juce::Time::getMillisecondCounterHiRes();
+    const float dt = (float)juce::jlimit(0.0, .1, (now-lastFrameMs)/1000.0);
+    lastFrameMs = now;
+    const bool running = processor.hostPlaying.load() || processor.audition.load() || processor.outputPeak.load()>.0001f;
+    const float target = running ? juce::jlimit(.15f, 1.0f, processor.outputPeak.load()*2) : 0;
+    activity += (target-activity)*(1-std::exp(-dt*8));
+    stirEnergy *= std::exp(-dt*2);
+    if(motionEnabled && (activity>.01f || stirEnergy>.01f))
+    {
+        animationSeconds = std::fmod(animationSeconds+dt, 1000.0f);
+        beatPhase = std::fmod(beatPhase+dt*(float)processor.hostTempo.load()/60.0f, 4.0f);
+    }
     ui = std::move(next);
-    pantryList.updateContent();
+    if (changed) pantryList.updateContent();
     playButton.setToggleState(processor.audition.load(), juce::dontSendNotification);
     playButton.setButtonText(processor.audition.load() ? "STOP AUDITION" : "AUDITION");
     for (int i = 0; i < 5; ++i)
@@ -377,12 +491,8 @@ void GumboPotAudioProcessorEditor::timerCallback()
     }
     for (auto *b : {&importButton, &demoButton, &recipeButton, &saveButton, &stirButton, &mixButton, &stemButton})
         b->setEnabled(!processor.loading.load());
-    if (changed)
-        repaint();
-    else
-        repaint(juce::Rectangle<float>(1204, 110, 216, 300)
-                    .transformedBy(juce::AffineTransform::scale(scale))
-                    .toNearestInt());
+    motionButton.setButtonText(motionEnabled ? "MOTION ON" : "MOTION OFF");
+    if (isShowing()) repaint();
 }
 void GumboPotAudioProcessorEditor::chooseAudio(int target)
 {
@@ -502,7 +612,7 @@ void GumboPotAudioProcessorEditor::paintListBoxItem(int row, juce::Graphics &g, 
     if (house)
     {
         g.setColour(muted); g.setFont(juce::FontOptions(9.0f * scale));
-        g.drawText("HOUSE DEMO / 120 BPM", 10, 25, width - 20, 12, juce::Justification::centredLeft);
+        g.drawText("120 BPM", 10, 25, width - 20, 12, juce::Justification::centredLeft);
     }
 }
 void GumboPotAudioProcessorEditor::listBoxItemDoubleClicked(int row, const juce::MouseEvent &)
