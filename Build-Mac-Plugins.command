@@ -31,6 +31,16 @@ cp INSTALL_NATIVE.md "$gumbo_stage/READ-ME.md"
 cp Output/GumboPot_Native_Interface.png "$gumbo_stage/GumboPot_Native_Interface.png"
 cp Output/Native-Checks.txt "$gumbo_stage/Native-Checks.txt"
 bash "$gumbo_stage/Install-Mac.command"
+killall -u "$(id -un)" AudioComponentRegistrar 2>/dev/null || true
+sleep 2
+auval -a 2>&1 | tee Output/AU-Components.txt
+if ! grep -Eq 'aumu[[:space:]]+Gpot[[:space:]]+Gmbo' Output/AU-Components.txt && [[ "${GITHUB_ACTIONS:-false}" == true ]]; then
+  sudo mkdir -p /Library/Audio/Plug-Ins/Components
+  sudo ditto "$gumbo_stage/Components/Gumbo Pot.component" '/Library/Audio/Plug-Ins/Components/Gumbo Pot.component'
+  sudo killall AudioComponentRegistrar 2>/dev/null || true
+  sleep 2
+  auval -a 2>&1 | tee Output/AU-Components.txt
+fi
 auval -v aumu Gpot Gmbo 2>&1 | tee Output/AU-Validation.txt
 cp Output/AU-Validation.txt "$gumbo_stage/AU-Validation.txt"
 hdiutil create -volname 'Gumbo Pot' -srcfolder "$gumbo_stage" -ov -format UDZO 'Output/GumboPot-Mac-universal.dmg'
