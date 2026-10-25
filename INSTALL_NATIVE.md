@@ -20,12 +20,12 @@ bash Build-Mac-Plugins.command
 
 The script fetches the pinned JUCE 8.0.4 tag, compiles universal arm64/x86_64 VST3 and AU bundles, runs the native checks, renders the actual editor PNG, installs the bundles for this user, runs `auval`, and creates a DMG and ZIP in **Output/**. It stops on an error. A first build can take several minutes. No Node.js or browser is needed to run the native instrument.
 
-The included `.github/workflows/native-mac.yml` runs the same build on a GitHub Mac runner if you place this project in your repository. Download its artifact after the job succeeds. This workflow has been prepared; it has not been run from this workspace because no Gumbo Pot repository is connected.
+The included `.github/workflows/native-mac.yml` builds and validates on a GitHub Mac runner. Download the artifact from a successful run. Executed validation results are recorded in NATIVE_VERIFICATION.md.
 
 ## First sound
 
 1. Insert **Gumbo Pot** on an instrument track.
-2. Click **LOAD HOUSE DEMO**. Five original synthesized loops appear.
+2. Click **DEMO**. Five original synthesized loops appear.
 3. Start your DAW transport, hold a MIDI note, or click **AUDITION**. Stop Audition when you want to follow only your DAW transport/MIDI.
 4. Import WAV/AIFF/FLAC files to replace the ingredients. Drop one file on a bowl to replace that bowl; drop a batch anywhere else to fill unlocked slots. Imports are limited to mono/stereo loops up to 120 seconds and 12 million frames per sample.
 5. Source BPM is parsed from numeric filename tokens; otherwise it defaults to 120. Pre-analyzed stack JSON files can supply exact per-layer BPM. This native release has no automatic BPM/key detection. Tempo synchronization is resampling, so pitch changes with tempo.
@@ -40,3 +40,5 @@ The native instrument does not embed the Splice login/client yet. **OPEN SPLICE 
 ## Checks before release
 
 Read **NATIVE_VERIFICATION.md** for actual executed results. A Linux VST3 build or software-rendered editor screenshot does not prove Mac/AU or DAW compatibility. The source Mac workflow must complete before calling the Mac DMG built/validated. Test session recall, live sample changes, transport seeks/tempo changes, mono/stereo, automation, MIDI, both CPU architectures and exported audio in your actual DAWs.
+
+## Interface motion\n\nThe header **MOTION ON/OFF** switch pauses the decorative steam, bubbles and stirring motion independently of audio. Pots animate during playback; the meter reports actual output. Gain, pan and filter controls use their standard names. The interface artwork is drawn in code without a photographic backdrop.\n
