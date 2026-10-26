@@ -41,4 +41,6 @@ The native instrument does not embed the Splice login/client yet. **OPEN SPLICE 
 
 Read **NATIVE_VERIFICATION.md** for actual executed results. A Linux VST3 build or software-rendered editor screenshot does not prove Mac/AU or DAW compatibility. The source Mac workflow must complete before calling the Mac DMG built/validated. Test session recall, live sample changes, transport seeks/tempo changes, mono/stereo, automation, MIDI, both CPU architectures and exported audio in your actual DAWs.
 
-## Interface motion\n\nThe header **MOTION ON/OFF** switch pauses the decorative steam, bubbles and stirring motion independently of audio. Pots animate during playback; the meter reports actual output. Gain, pan and filter controls use their standard names. The interface artwork is drawn in code without a photographic backdrop.\n
+## Interface motion
+
+The header **MOTION ON/OFF** switch pauses the decorative steam, bubbles and stirring motion independently of audio. Pots animate during playback; the meter reports actual output. Gain, pan and filter controls use their standard names. The interface artwork is drawn in code without a photographic backdrop.
