@@ -5,7 +5,7 @@ namespace
 const juce::Colour paper(0xffeee3ca), muted(0xffada699), gold(0xffed9c54), green(0xffa8bd83);
 const std::array<juce::Colour, 5> accents{juce::Colour(0xffe77b55), juce::Colour(0xffd7b667), juce::Colour(0xff9eae74),
                                           juce::Colour(0xff7ca6a0), juce::Colour(0xffc39b81)};
-const std::array<juce::String, 5> names{"ANDOUILLE", "SHRIMP", "OKRA", "FILÉ", "BAY LEAF"};
+const std::array<juce::String, 5> names{"ANDOUILLE", "SHRIMP", "OKRA", juce::String("FIL") + juce::String::charToString(0x00c9), "BAY LEAF"};
 const std::array<juce::String, 5> roles{"DRUMS / PERCUSSION", "BASS", "MELODY / KEYS", "TEXTURES / FX",
                                         "VOCALS / CHOPS"};
 } // namespace
