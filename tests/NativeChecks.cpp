@@ -237,6 +237,12 @@ int main(int argc, char **argv)
     const auto loaded = p.getUiState();
     check(loaded.layers[0].active && !loaded.layers[1].active,
           "relative stack paths load and shorter stacks clear old slots");
+    // Loader completion and the 20 Hz parameter service are separate events.
+    // Wait for the actual postcondition rather than assuming one 75 ms dispatch is enough.
+    const auto gainDeadline = juce::Time::getMillisecondCounterHiRes() + 2000.0;
+    while (std::abs(p.apvts.getRawParameterValue("layer1gain")->load() - .6f) >= .0001f &&
+           juce::Time::getMillisecondCounterHiRes() < gainDeadline)
+        pump();
     check(std::abs(p.apvts.getRawParameterValue("layer1gain")->load() - .6f) < .0001f,
           "explicit stack loading applies JSON gain on the message thread");
     stack.replaceWithText("{\"layers\":[{\"path\":\"missing.wav\"}]}");
