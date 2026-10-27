@@ -30,7 +30,7 @@ done
 cp installer/Welcome.html "$work/resources/Welcome.html"
 cp installer/ReadMe.html "$work/resources/ReadMe.html"
 productbuild --distribution installer/Distribution.xml --resources "$work/resources" --package-path "$work/packages" 'Output/GumboPot-Installer.pkg'
-installer -showChoicesXML -pkg 'Output/GumboPot-Installer.pkg' > Output/Installer-Choices.xml
+installer -showChoicesXML -pkg 'Output/GumboPot-Installer.pkg' -target / > Output/Installer-Choices.xml
 pkgutil --expand 'Output/GumboPot-Installer.pkg' "$work/expanded"
 python3 - "$work/expanded/Distribution" <<'PY'
 import sys,xml.etree.ElementTree as E
