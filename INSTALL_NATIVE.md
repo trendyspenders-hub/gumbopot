@@ -2,11 +2,15 @@
 
 The intended installable formats are **VST3** and **Audio Unit (AU)** for macOS 11+ on Apple Silicon and Intel. VST3 is also configured for a Linux verification build. AAX and the obsolete VST2 format are not included.
 
-## If you downloaded a built Mac DMG
+## Standard Mac installer
 
-Close your DAW, open the DMG, then run **Install-Mac.command**. It copies the plugins to your user Audio/Plug-Ins folders and backs up an existing Gumbo Pot version. No administrator access is needed. Restart the DAW and rescan instruments. The AU is an instrument (`aumu`, subtype `Gpot`, manufacturer `Gmbo`). Logic uses AU; most other supported Mac hosts can use VST3.
+Double-click **GumboPot-Installer.pkg** and follow the macOS installation wizard. If you downloaded the installer DMG, open it and double-click the PKG inside. Choose AU, VST3 or both on the Installation Type screen. Close your DAW first; restart it and rescan instruments afterwards.
 
-This development build uses ad-hoc signing. It is not Developer ID signed or notarized. macOS may require approval before running a downloaded installer/plugin. Do not disable Gatekeeper globally. For wider distribution, supply your own Apple Developer signing identity and notarization workflow.
+The installer asks for administrator approval and places the plugins in /Library/Audio/Plug-Ins/Components and /Library/Audio/Plug-Ins/VST3. No Terminal or command script is required.
+
+The standard package was installed and verified on a disposable Mac in https://github.com/trendyspenders-hub/gumbopot/actions/runs/40451714670. Both version 0.3.1 package receipts, installed binary equality, signatures, CPU slices and Apple AU validation passed.
+
+The installer is unsigned and is not Apple notarized. Plugin bundles use ad-hoc signing. Do not disable Gatekeeper globally.
 
 ## If you downloaded the native source ZIP
 
