@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<installer-gui-script minSpecVersion="2">
+  <title>Gumbo Pot</title>
+  <welcome file="Welcome.html" mime-type="text/html"/>
+  <readme file="ReadMe.html" mime-type="text/html"/>
+  <options customize="always" require-scripts="false" hostArchitectures="arm64,x86_64"/>
+  <domains enable_localSystem="true" enable_currentUserHome="false" enable_anywhere="false"/>
+  <volume-check script="true"><allowed-os-versions><os-version min="11.0"/></allowed-os-versions></volume-check>
+  <choices-outline><line choice="au"/><line choice="vst3"/></choices-outline>
+  <choice id="au" title="Audio Unit (AU)" description="For Logic Pro, GarageBand and AU hosts." start_selected="true"><pkg-ref id="audio.gumbopot.au"/></choice>
+  <choice id="vst3" title="VST3" description="For Ableton Live, Cubase, REAPER and other VST3 hosts." start_selected="true"><pkg-ref id="audio.gumbopot.vst3"/></choice>
+  <pkg-ref id="audio.gumbopot.au" version="0.3.1" onConclusion="none">au.pkg</pkg-ref>
+  <pkg-ref id="audio.gumbopot.vst3" version="0.3.1" onConclusion="none">vst3.pkg</pkg-ref>
+</installer-gui-script>

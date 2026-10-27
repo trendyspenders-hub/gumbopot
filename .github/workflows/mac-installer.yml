@@ -1,0 +1,29 @@
+name: Gumbo Pot standard Mac installer
+on:
+  workflow_dispatch:
+  push:
+    paths: ['installer/**', '.github/workflows/mac-installer.yml']
+permissions:
+  contents: read
+  actions: read
+jobs:
+  package-installer:
+    runs-on: macos-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download validated animated native build
+        uses: actions/download-artifact@v4
+        with:
+          name: GumboPot-Mac-VST3-AU
+          path: Input
+          github-token: ${{ github.token }}
+          run-id: 40421957045
+      - name: Build and test standard AU and VST3 installer
+        run: bash installer/Build-Mac-Package.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: GumboPot-Standard-Mac-Installer
+          path: Output/
+          if-no-files-found: error
